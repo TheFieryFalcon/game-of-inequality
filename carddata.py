@@ -1,5 +1,4 @@
 import GameofInequality as main
-import GameofInequality as main
 class Cards:
     go = main.Card(main.CardType.GO, "GO", 1)
     okr = main.Card(main.CardType.PROPERTY, "Old Kent Road", 2, b=60, c=main.Set.BROWN)

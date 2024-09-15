@@ -30,7 +30,6 @@ class SingularCircularLinkedList:
     def traverse(self, until):
         # Return the elements of a linked list as a list
         if not self.head:
-            print("Circular Linked List is empty")
             return
         current = self.head
         nodes = []
@@ -39,15 +38,13 @@ class SingularCircularLinkedList:
             nodes.append(current)
             i += 1
             current = current.next
-            if (current == self.head | i == until):
+            if (current == self.head or i == until):
                 break
         return(nodes)
     def deleteat(self, position):
         if not self.head:
-            print("Circular Linked List is empty")
             return
         if position < 0:
-            print("Invalid position")
             return
 
         # Deleting the head node
@@ -69,12 +66,10 @@ class SingularCircularLinkedList:
             current = current.next
             count += 1
         if count < position - 1:
-            print("Position out of range")
             return
         current.next = current.next.next
     def getnodeat(self, position):
         if not self.head:
-            print("Circular Linked List is empty")
             return
         current = self.head
         if (position == 0):
@@ -83,7 +78,7 @@ class SingularCircularLinkedList:
         while True:
             i += 1
             current = current.next
-            if (current == self.head | i == position):
+            if ((current == self.head) or (i == position)):
                 node = current
                 break
         return(node)

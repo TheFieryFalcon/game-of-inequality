@@ -1,5 +1,5 @@
 # Game of Inequality
-# Abhijith Madhavan & Uno Wong
+# Abhijith Madhavan and Uno Wong
 # September 2024
 
 # import libraries
@@ -7,9 +7,9 @@ import os
 import random
 import time
 from enum import Enum
-import carddata
 import scll
-# define types
+
+#init types
 class Race(Enum):
     PLACEHOLDER = 0
     WHITE = 1
@@ -21,8 +21,8 @@ class Race(Enum):
 class CardType(Enum):
     PLACEHOLDER = 0
     PROPERTY = 1
-    UTILITY = 2
-    RAILROAD = 3
+    UTILITY = 3
+    RAILROAD = 2
     TAX = 4
     FREE = 5
     GOTOJAIL = 6
@@ -63,6 +63,7 @@ class Player:
         "Railroads": [],
         "Utilities": []
     }
+    clbenefits = [0, 0, 300, 600, 1000, 1500, 2000]
     def __init__(this, name, race):
         this.name = name
         this.race = race
@@ -74,86 +75,110 @@ class Player:
         dice2 = random.randint(1, 6)
         print("Rolling dice...")
         time.sleep(1)
-        print ("Dice 1: " + dice1)
-        print ("Dice 2: " + dice2)
+        print (f"Dice 1: {dice1}")
+        print (f"Dice 2: {dice2}")
         if dice1 == dice2:
             print ("Doubles!")
             this.rolleddoubles = this.rolleddoubles + 1
-        this.move(this, dice1+dice2)
+        this.move((dice1+dice2))
     def move (this, spaces):
+        print(f"Moving {spaces} spaces...")
+        time.sleep(2)
         this.position += spaces
         if (this.position > 39):
             this.money += 200
             this.turnssincecenterlink += 1
             this.position = this.position % 40
+        print(f"You landed on {Cards.board[this.position].name}")
         this.timesmoved = this.timesmoved + 1
         if this.rolleddoubles==3:
             this.gotojail()
         elif this.rolleddoubles == this.timesmoved:
             this.rolldice()
         else:
-            this.playerturn(False)
+            this.playerturn()
     def playerturn (this):
         this.builthousethisturn = False
         this.rolleddoubles = 0
         this.timesmoved = 0
-        cardon = carddata.Cards.board[this.position]
-        action = input(f"What would you like to do, {this.name}? \n 1 to buy this card (if applicable) \n 2 to put houses on this card (if applicable) \n 3 to sell this card (if applicable) \n 4 to view stats of this card \n 5 to view your own stats \n 6 to collect centerlink benefits (if applicable) \n 9 to end your turn")
+        cardon = Cards.board[this.position]
+        action = input(f"What would you like to do, {this.name}? \n 1 to buy this card (if applicable) \n 2 to put houses on this card (if applicable) \n 3 to sell this card (if applicable) \n 4 to view stats of this card \n 5 to view your own stats \n 6 to collect centerlink benefits (if applicable) \n 9 to end your turn\n")
+        shouldbreak = False
         match action:
-            case[1]:
-                if (cardon.cardtype < 4):
+            case '1':
+                if (cardon.cardtype.value < 4):
                     cardon.buy(this)
                 else:
                     print("You cannot buy this type of card!")
-            case[2]:
-                if (cardon.cardtype == 1):
+            case '2':
+                if (cardon.cardtype.value == 1):
                     cardon.construct_house(this)
                 else:
                     print("You cannot construct houses on that type of card!")
-            case[3]:
-                if (cardon.cardtype < 4):
+            case '3':
+                if (cardon.cardtype.value < 4):
                     cardon.sell(this)
                 else:
                     print("You cannot sell that type of card!")
-            case[4]:
-                print(f" Name: {cardon.name} \nType: {cardon.cardtype.name}")
-                match cardon.cardtype:
-                    case[1]:
+            case '4':
+                print(f" Name: {cardon.name} \n Type: {cardon.cardtype.name}")
+                match cardon.cardtype.value:
+                    case 1:
                         if (cardon.owner == emptyplayer):
                             print(f" Set: {cardon.set.name} \n Price: {cardon.price} \n Base rent: {cardon.set.value} \n Rent with 1 house: {cardon.set.value * cardon.rentbase[1]} \n Rent with 2 houses: {cardon.set.value * cardon.rentbase[2]} \n Rent with 3 houses: {cardon.set.value * cardon.rentbase[3]} \n Rent with 4 houses: {cardon.set.value * cardon.rentbase[4]} \n Rent with a hotel: {cardon.set.value * cardon.rentbase[5]}")
                         else:
-                            print(f" Set: {cardon.set.name} \n Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race} \n Rent: {cardon.rent}")
-                    case[2]:
+                            print(f" Set: {cardon.set.name} \n Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race.name} \n Rent: {cardon.rent}")
+                    case 2:
                         if (cardon.owner == emptyplayer):
                             print(" Rent with 1 railroad: 25 \n Rent with 2 railroads: 50 \n Rent with 3 railroads: 100 \n Rent with 4 railroads: 200")
                         else:
-                            print(f" Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race} \n Rent: {cardon.rent}")
-                    case[3]:
+                            print(f" Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race.name} \n Rent: {cardon.rent}")
+                    case 3:
                         if (cardon.owner == emptyplayer):
                             print(" Rent with 1 utility: 4x rolled total \n Rent with 2 utilities: 10x rolled total")
                         else:
-                            print(f" Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race} \n Rent: {cardon.multi}x rolled total")
-                    case[4]:
+                            print(f" Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race.name} \n Rent: {cardon.multi}x rolled total")
+                    case 4:
                         print(f" Payment: {cardon.tax}")
-                    case[9]:
+                    case 9:
                         print("Get 200 for passing and 400 for landing here")
-            case[5]:
-                print(f" Name: {this.name} \n Race: {this.race} \n Properties Owned: ")
+            case '5':
+                print(f" Name: {this.name} \n Race: {this.race.name} \n Properties Owned: ")
                 for key in this.sortedproperties.keys():
-                    if(this.sortedproperties[key].len > 0):
-                        print (f"{key} Set:")
+                    if(len(this.sortedproperties[key]) > 0):
+                        print (f" {key} Set:")
                         for property in this.sortedproperties[key]:
-                            print(property.name)
+                            print(f" {property.name}")
                 print (f" Balance: {this.money} ")
-
-
-            case[9]:
+                if (this.turnssincecenterlink >= this.race.value and this.race != Race.WHITE):
+                    print(" Centerlink Status: READY")
+                elif (this.race != Race.WHITE):
+                    print(f" Centerlink Status: IN {this.race.value - this.turnssincecenterlink} GO PASSES")
+                else:
+                    print(" Centerlink Status: INELIGIBLE")
+                print(f" Position: {Cards.board[this.position].name}")
+            case '6':
+                if (this.turnssincecenterlink >= this.race.value and this.race != Race.WHITE):
+                    print(f"Collected {this.clbenefits[this.race.value]} in Centerlink benefits!")
+                    this.money += this.clbenefits[this.race.value]
+                elif (this.race != Race.WHITE):
+                    print(f"Too soon since last benefit collection. You will be eligible in {this.race.value - this.turnssincecenterlink} go passes.")
+                else:
+                    print("You are not eligible for any Centerlink benefits, sorry!")
+            case '9':
                 shouldbreak = True
+            case _:
+                print("Invalid input. Please try again")
         if (shouldbreak == False):
-            this.playerturn(this)
+            this.playerturn()
         else:
             this.postplayerturn()
     def postplayerturn(this):
+        #TODO: MAIN THING TOMORROW
+        #pay rent
+        #activate effects of spaces
+        #bankruptcy logic
+        preplayerturn(currentplayer.next.data)
         pass
     def gotojail(this):
         pass
@@ -165,82 +190,88 @@ class Player:
     def modifybalance(this, amount):
         if (this.race != Race.INDIAN):
             this.money == this.money + amount
+            print(f"Your balance has been modified by {amount}.")
             return(this.money)
         elif (amount > 0):
-            this.money = this.money + amount
+            this.money = this.money + 0.8 * amount
+            print(f"Your balance has been modified by {amount}. \nAs you are Indian, the banker took a look at you and waved his nose as if to dispell a curry smell. \n20% of your transaction has been voided due to racism.")
+        else:
+            this.money = this.money + 1.2 * amount
+            print(f"Your balance has been modified by {amount}. \nAs you are Indian, the banker thought you were reckless with your spending and decided to teach you a lesson by charging 20% more for your transaction.")
     def refreshrent(this, property):
             trainstations = []
             utilities = []
             trainstationrents = [25, 50, 100, 200]
             utilitymultis = [4, 10]
             if (property in this.properties):
-                match property.cardtype:
-                    case[1]:
+                match property.cardtype.value:
+                    case 1:
                         match property.set:
-                            case[Set.BROWN]:
+                            case Set.BROWN:
                                 this.sortedproperties["Brown"].remove(property)
-                            case[Set.CYAN]:
+                            case Set.CYAN:
                                 this.sortedproperties["Cyan"].remove(property)
-                            case[Set.PURPLE]:
+                            case Set.PURPLE:
                                 this.sortedproperties["Purple"].remove(property)
-                            case[Set.ORANGE]:
+                            case Set.ORANGE:
                                 this.sortedproperties["Orange"].remove(property)
-                            case[Set.RED]:
+                            case Set.RED:
                                 this.sortedproperties["Red"].remove(property)
-                            case[Set.YELLOW]:
+                            case Set.YELLOW:
                                 this.sortedproperties["Yellow"].remove(property)
-                            case[Set.GREEN]:
+                            case Set.GREEN:
                                 this.sortedproperties["Green"].remove(property)
-                            case[Set.BLUE]:
+                            case Set.BLUE:
                                 this.sortedproperties["Blue"].remove(property)
-                    case[2]:
+                    case 2:
                         trainstations.remove(property)
                         this.sortedproperties["Railroads"].remove(property)
-                    case[3]:
+                    case 3:
                         utilities.remove(property)
                         this.sortedproperties["Utilities"].remove(property)
             else:
-                match property.cardtype:
-                    case[1]:
+                match property.cardtype.value:
+                    case 1:
                         match property.set:
-                            case[Set.BROWN]:
+                            case Set.BROWN:
                                 this.sortedproperties["Brown"].append(property)
-                            case[Set.CYAN]:
+                            case Set.CYAN:
                                 this.sortedproperties["Cyan"].append(property)
-                            case[Set.PURPLE]:
+                            case Set.PURPLE:
                                 this.sortedproperties["Purple"].append(property)
-                            case[Set.ORANGE]:
+                            case Set.ORANGE:
                                 this.sortedproperties["Orange"].append(property)
-                            case[Set.RED]:
+                            case Set.RED:
                                 this.sortedproperties["Red"].append(property)
-                            case[Set.YELLOW]:
+                            case Set.YELLOW:
                                 this.sortedproperties["Yellow"].append(property)
-                            case[Set.GREEN]:
+                            case Set.GREEN:
                                 this.sortedproperties["Green"].append(property)
-                            case[Set.BLUE]:
+                            case Set.BLUE:
                                 this.sortedproperties["Blue"].append(property)
-                    case[2]:
+                    case 2:
                         trainstations.append(property)
                         this.sortedproperties["Railroads"].append(property)
-                    case[3]:
+                    case 3:
                         utilities.append(property)
                         this.sortedproperties["Utilities"].append(property)
             for trainstation in trainstations:
-                trainstation.rent == trainstationrents[trainstations.len]
+                trainstation.rent == trainstationrents[len(trainstations)]
             for utility in utilities:
-                utility.multi == utilitymultis[utilities.len]
+                utility.multi == utilitymultis[len(utilities)]
                 
 #too much effort to implement
-'''            for key in this.sortedproperties.keys():
+'''            for key in this.sortedproperties.keys():3
                 this.fullsetbonus(key, sp2[key].pop(0), sp2)
     def fullsetbonus(this, color, number, sp):
-        if (sp[color].len >= number):
-            for property in sp[color]:
+        if (sp[color].len() >= number):
+            for property in sp[color:
                 property.rent = property.rent*2
                 property.remove
         else
         
 '''             
+#define statics
 emptyplayer = Player("Empty", Race.PLACEHOLDER)
 class Card:
     cardtype = CardType.PLACEHOLDER
@@ -252,34 +283,34 @@ class Card:
         c = kwargs.get('c', None)
         this.cardtype = cardtype
         this.name = name
-        match cardtype:
-            case [1]:
+        match cardtype.value:
+            case 1:
                 this.price = b
                 this.set = c
                 this.rent = this.set.value
                 match this.set:
-                    case [Set.BROWN] | [Set.CYAN]:
+                    case Set.BROWN | Set.CYAN:
                         this.houseprice = 50
-                    case [Set.PURPLE] | [Set.ORANGE]:
+                    case Set.PURPLE | Set.ORANGE:
                         this.houseprice = 100
-                    case [Set.RED] | [Set.YELLOW]:
+                    case Set.RED | Set.YELLOW:
                         this.houseprice = 150
-                    case [Set.GREEN] | [Set.BLUE]:
+                    case Set.GREEN | Set.BLUE:
                         this.houseprice = 200
-            case [2]:
+            case 3:
                 this.multiplier = 4
                 this.price = 150
-            case[3]:
+            case 2:
                 this.rent = 25
                 this.price = 200
-            case[4]:
+            case 4:
                 this.tax = b
-            case[6]:
+            case 6:
                 #5 is empty
                 this.effect=Player.gotojail
-            case[7]:
+            case 7:
                 this.effect=Player.chance
-            case[8]:
+            case 8:
                 this.effect=Player.chest
                 #logic of 9 is determined in turn code
     def gettype(this):
@@ -289,8 +320,8 @@ class Card:
             this.owner = emptyplayer
             sellprice = (this.price + (this.houseprice * this.housesbuilt))/2
             player.modifybalance(sellprice)
-            player.properties.remove(this)
             player.refreshrent(this)
+            player.properties.remove(this)
             this.housesbuilt = 0
             if (this.cardtype == CardType.PROPERTY):
                 this.rent = this.set.value
@@ -298,7 +329,7 @@ class Card:
             print("You don't own that property!")
         
     def construct_house (this, player):
-            if (player.money >= this.houseprice & player == this.owner & this.housesbuilt < 5 & player.builthousethisturn == False):
+            if (player.money >= this.houseprice and player == this.owner and this.housesbuilt < 5 and player.builthousethisturn == False):
                 player.modifybalance(this.houseprice * -1)
                 this.housesbuilt += 1
                 this.rent = this.set.value * this.rentbase[this.housesbuilt]
@@ -308,15 +339,61 @@ class Card:
         if (this.owner == emptyplayer):
             if (player.money > this.price):
                 player.modifybalance(this.price * -1)
-                player.properties.append(this)
                 player.refreshrent(this)
+                player.properties.append(this)
+                player.builthousethisturn = True
             else:
                 print("Not enough money!")
         else:
             print("Someone else already owns this card!")
-        
-        
-                
+# card data
+class Cards:
+    go = Card(CardType.GO, "GO", 1)
+    okr = Card(CardType.PROPERTY, "Old Kent Road", 2, b=60, c=Set.BROWN)
+    chest1 = Card(CardType.COMMUNITYCHEST, "Community Chest Card", 3)
+    wchr = Card(CardType.PROPERTY, "Whitechapel Road", 4, b=60, c=Set.BROWN)
+    itax = Card(CardType.TAX, "Income Tax", 5, b=200)
+    kcs = Card(CardType.RAILROAD, "King's Cross Station", 6)
+    tai = Card(CardType.PROPERTY, "The Angel, Islington", 7, b=100, c=Set.CYAN)
+    chance1 = Card(CardType.CHANCE, "Chance Card", 8)
+    er = Card(CardType.PROPERTY, "Euston Road", 9, b=100, c=Set.CYAN)
+    pvr = Card(CardType.PROPERTY, "Pentonville Road", 10, b=120, c=Set.BROWN)
+    jail = Card(CardType.FREE, "Just Visiting/Jail", 11)
+    pm = Card(CardType.PROPERTY, "Pall Mall", 12, b=140, c=Set.PURPLE)
+    ecomp = Card(CardType.UTILITY, "Electric Company", 13)
+    wh = Card(CardType.PROPERTY, "Whitehall", 14, b=140, c=Set.PURPLE)
+    nta = Card(CardType.PROPERTY, "Northumb'nd Avenue", 15, b=160, c=Set.PURPLE)
+    mbs = Card(CardType.RAILROAD, "Marylebone Station", 16)
+    bs = Card(CardType.PROPERTY, "Bow Street", 17, b=180, c=Set.ORANGE)
+    chest2 = Card(CardType.COMMUNITYCHEST, "Community Chest Card", 18)
+    gms = Card(CardType.PROPERTY, "Great Marlborough Street", 19, b=180, c=Set.ORANGE)
+    vs = Card(CardType.PROPERTY, "Vine Street", 20, b=200, c=Set.ORANGE)
+    fp = Card(CardType.FREE, "Free Parking", 21)
+    str = Card(CardType.PROPERTY, "Strand", 22, b=220, c=Set.RED)
+    chance2 = Card(CardType.CHANCE, "Chance Card", 23)
+    fs = Card(CardType.PROPERTY, "Fleet Street", 24, b=220, c=Set.RED)
+    ts = Card(CardType.PROPERTY, "Trafalgar Square", 25, b=240, c=Set.RED)
+    fss = Card(CardType.RAILROAD, "Fenchurch St. Station", 26)
+    ls = Card(CardType.PROPERTY, "Leicester Square", 27, b=260, c=Set.YELLOW)
+    cos = Card(CardType.PROPERTY, "Coventry Street", 28, b=260, c=Set.YELLOW)
+    water = Card(CardType.UTILITY, "Water Works", 29)
+    picady = Card(CardType.PROPERTY, "Piccadilly", 30, b=280, c=Set.YELLOW)
+    gotojail = Card(CardType.GOTOJAIL, "GO TO JAIL", 31)
+    rgs = Card(CardType.PROPERTY, "Regent Street", 32, b=300, c=Set.GREEN)
+    oxst = Card(CardType.PROPERTY, "Oxford Street", 33, b=300, c=Set.GREEN)
+    community3 = Card(CardType.COMMUNITYCHEST, "Community Chest Card", 34)
+    bos = Card(CardType.PROPERTY, "Bond Street", 35, b=320, c=Set.GREEN)
+    lsst = Card(CardType.RAILROAD, "Liverpool St. Station", 36)
+    chance3 = Card(CardType.CHANCE, "Chance Card", 37)
+    pkln = Card(CardType.PROPERTY, "Park Lane", 38, b=350, c=Set.BLUE)
+    suptx = Card(CardType.TAX, "Luxury Tax", 39, b=100)
+    mayfr = Card(CardType.PROPERTY, "Mayfair", 40, b=400, c=Set.BLUE)
+
+    board = [go, okr, chest1, wchr, itax, kcs, tai, chance1, er, pvr, jail, pm, ecomp, wh, nta, mbs, bs, chest2, gms, vs, fp, str, chance2, fs, ts, fss, ls, cos, water, picady, gotojail, rgs, oxst, community3, bos, lsst, chance3, pkln, suptx, mayfr]
+
+player_list = scll.SingularCircularLinkedList()
+player_list.append(emptyplayer)
+currentplayer = player_list.getnodeat(0) #TODO: find out what the fuck is wrong with this
         
 # define modules
 def clearconsole():
@@ -326,24 +403,30 @@ def tokenselect(player_list):
     # List of available tokens (races)
     tokens = [Race.ASIAN, Race.BLACK, Race.INDIAN, Race.INDIGENOUS, Race.WHITE, Race.LATINO]
     print("\nToken assignments:")
-    for player in player_list.traverse():
+    for player in player_name_list:
         if tokens:
-            player.race = random.choice(tokens)
-            print(f"Player {player} got the token {player.race}!")
+            race = random.choice(tokens)
+            print(f"Player {player} got the token {race.name}!")
+            player_list.append(Player(player, race))
+    player_list.deleteat(0)
     currentplayer = player_list.getnodeat(0)
+    preplayerturn(currentplayer.data)
             #Allow duplicates
-def playerturns(player):
+def preplayerturn(player):
+    #ORDER OF TURN
+    #preplayerturn -> rolldice -> move -> playerturn -> postplayerturn
     print(f"\n{player}'s turn")
-    i = input("Press N to roll dice")
+    i = input("Press N to roll dice \n")
     if i != "n":
         print ("Please press N to roll dice")
+        preplayerturn(player)
     else:
         player.rolldice()
 
 def gamestart():
     print("Welcome everyone, it is time for the grand token selection. Each player is given a token with which they (\n) are either given perks or unhappiness.")
     print("This is the part that will determine your fate in the Game of Inequality.")
-    tokenselect()
+    tokenselect(player_list)
     
 
 
@@ -368,12 +451,12 @@ while True:
     elif nameno > 5:
         print("Too many players!")
         continue
-    player_list = scll.SingularCircularLinkedList()
+    player_name_list = []
     for i in range(nameno):
         name = input(f"Select a name for the player {i + 1} \n")
-        player_list.append(name)
+        player_name_list.append(name)
     
-    for i, name in enumerate(player_list.traverse()):
+    for i, name in enumerate(player_name_list):
         print(f"Player {i + 1}: {name}")
     print("Starting game...")
     gamestart()
