@@ -31,13 +31,13 @@ class CardType(Enum):
     GO = 9
 class Set(Enum):
     BROWN = 5
-    CYAN = 15
-    PURPLE = 20
-    ORANGE = 25
-    RED = 30
-    YELLOW = 35
-    GREEN = 40
-    BLUE = 50
+    CYAN = 10
+    PURPLE = 15
+    ORANGE = 20
+    RED = 25
+    YELLOW = 30
+    GREEN = 35
+    BLUE = 40
 
 class Player:
     money = 2000
@@ -52,14 +52,16 @@ class Player:
     builthousethisturn = False
     turnssincecenterlink = 0
     sortedproperties = {
-        "brown": [3],
-        "cyan": [4],
-        "purple": [4],
-        "orange": [4],
-        "red": [4],
-        "yellow": [4],
-        "green": [4],
-        "blue": [3]
+        "Brown": [],
+        "Cyan": [],
+        "Purple": [],
+        "Orange": [],
+        "Red": [],
+        "Yellow": [],
+        "Green": [],
+        "Blue": [],
+        "Railroads": [],
+        "Utilities": []
     }
     def __init__(this, name, race):
         this.name = name
@@ -80,6 +82,10 @@ class Player:
         this.move(this, dice1+dice2)
     def move (this, spaces):
         this.position += spaces
+        if (this.position > 39):
+            this.money += 200
+            this.turnssincecenterlink += 1
+            this.position = this.position % 40
         this.timesmoved = this.timesmoved + 1
         if this.rolleddoubles==3:
             this.gotojail()
@@ -110,7 +116,37 @@ class Player:
                 else:
                     print("You cannot sell that type of card!")
             case[4]:
-                print(f"Name: {cardon.name} \nType: {cardon.cardtype.name} \n")
+                print(f" Name: {cardon.name} \nType: {cardon.cardtype.name}")
+                match cardon.cardtype:
+                    case[1]:
+                        if (cardon.owner == emptyplayer):
+                            print(f" Set: {cardon.set.name} \n Price: {cardon.price} \n Base rent: {cardon.set.value} \n Rent with 1 house: {cardon.set.value * cardon.rentbase[1]} \n Rent with 2 houses: {cardon.set.value * cardon.rentbase[2]} \n Rent with 3 houses: {cardon.set.value * cardon.rentbase[3]} \n Rent with 4 houses: {cardon.set.value * cardon.rentbase[4]} \n Rent with a hotel: {cardon.set.value * cardon.rentbase[5]}")
+                        else:
+                            print(f" Set: {cardon.set.name} \n Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race} \n Rent: {cardon.rent}")
+                    case[2]:
+                        if (cardon.owner == emptyplayer):
+                            print(" Rent with 1 railroad: 25 \n Rent with 2 railroads: 50 \n Rent with 3 railroads: 100 \n Rent with 4 railroads: 200")
+                        else:
+                            print(f" Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race} \n Rent: {cardon.rent}")
+                    case[3]:
+                        if (cardon.owner == emptyplayer):
+                            print(" Rent with 1 utility: 4x rolled total \n Rent with 2 utilities: 10x rolled total")
+                        else:
+                            print(f" Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race} \n Rent: {cardon.multi}x rolled total")
+                    case[4]:
+                        print(f" Payment: {cardon.tax}")
+                    case[9]:
+                        print("Get 200 for passing and 400 for landing here")
+            case[5]:
+                print(f" Name: {this.name} \n Race: {this.race} \n Properties Owned: ")
+                for key in this.sortedproperties.keys():
+                    if(this.sortedproperties[key].len > 0):
+                        print (f"{key} Set:")
+                        for property in this.sortedproperties[key]:
+                            print(property.name)
+                print (f" Balance: {this.money} ")
+
+
             case[9]:
                 shouldbreak = True
         if (shouldbreak == False):
@@ -142,49 +178,53 @@ class Player:
                     case[1]:
                         match property.set:
                             case[Set.BROWN]:
-                                this.sortedproperties["brown"].remove(property)
+                                this.sortedproperties["Brown"].remove(property)
                             case[Set.CYAN]:
-                                this.sortedproperties["cyan"].remove(property)
+                                this.sortedproperties["Cyan"].remove(property)
                             case[Set.PURPLE]:
-                                this.sortedproperties["purple"].remove(property)
+                                this.sortedproperties["Purple"].remove(property)
                             case[Set.ORANGE]:
-                                this.sortedproperties["orange"].remove(property)
+                                this.sortedproperties["Orange"].remove(property)
                             case[Set.RED]:
-                                this.sortedproperties["red"].remove(property)
+                                this.sortedproperties["Red"].remove(property)
                             case[Set.YELLOW]:
-                                this.sortedproperties["yellow"].remove(property)
+                                this.sortedproperties["Yellow"].remove(property)
                             case[Set.GREEN]:
-                                this.sortedproperties["green"].remove(property)
+                                this.sortedproperties["Green"].remove(property)
                             case[Set.BLUE]:
-                                this.sortedproperties["blue"].remove(property)
+                                this.sortedproperties["Blue"].remove(property)
                     case[2]:
                         trainstations.remove(property)
+                        this.sortedproperties["Railroads"].remove(property)
                     case[3]:
                         utilities.remove(property)
+                        this.sortedproperties["Utilities"].remove(property)
             else:
                 match property.cardtype:
                     case[1]:
                         match property.set:
                             case[Set.BROWN]:
-                                this.sortedproperties["brown"].append
+                                this.sortedproperties["Brown"].append(property)
                             case[Set.CYAN]:
-                                this.sortedproperties["cyan"].append
+                                this.sortedproperties["Cyan"].append(property)
                             case[Set.PURPLE]:
-                                this.sortedproperties["purple"].append
+                                this.sortedproperties["Purple"].append(property)
                             case[Set.ORANGE]:
-                                this.sortedproperties["orange"].append
+                                this.sortedproperties["Orange"].append(property)
                             case[Set.RED]:
-                                this.sortedproperties["red"].append
+                                this.sortedproperties["Red"].append(property)
                             case[Set.YELLOW]:
-                                this.sortedproperties["yellow"].append
+                                this.sortedproperties["Yellow"].append(property)
                             case[Set.GREEN]:
-                                this.sortedproperties["green"].append
+                                this.sortedproperties["Green"].append(property)
                             case[Set.BLUE]:
-                                this.sortedproperties["blue"].append
+                                this.sortedproperties["Blue"].append(property)
                     case[2]:
-                        trainstations.append
+                        trainstations.append(property)
+                        this.sortedproperties["Railroads"].append(property)
                     case[3]:
-                        utilities.append
+                        utilities.append(property)
+                        this.sortedproperties["Utilities"].append(property)
             for trainstation in trainstations:
                 trainstation.rent == trainstationrents[trainstations.len]
             for utility in utilities:
@@ -200,14 +240,14 @@ class Player:
                 property.remove
         else
         
-'''    
-            
+'''             
 emptyplayer = Player("Empty", Race.PLACEHOLDER)
 class Card:
     cardtype = CardType.PLACEHOLDER
     owner = emptyplayer
     housesbuilt = 0
-    def __init__(this, cardtype, name, **kwargs):
+    rentbase = [1, 4, 12, 28, 34, 40]
+    def __init__(this, cardtype, name, space, **kwargs):
         b = kwargs.get('b', None)
         c = kwargs.get('c', None)
         this.cardtype = cardtype
@@ -251,6 +291,9 @@ class Card:
             player.modifybalance(sellprice)
             player.properties.remove(this)
             player.refreshrent(this)
+            this.housesbuilt = 0
+            if (this.cardtype == CardType.PROPERTY):
+                this.rent = this.set.value
         else:
             print("You don't own that property!")
         
@@ -258,6 +301,7 @@ class Card:
             if (player.money >= this.houseprice & player == this.owner & this.housesbuilt < 5 & player.builthousethisturn == False):
                 player.modifybalance(this.houseprice * -1)
                 this.housesbuilt += 1
+                this.rent = this.set.value * this.rentbase[this.housesbuilt]
             else:
                 print("Building not successful. Balance has not been deducted.")
     def buy(this, player):
