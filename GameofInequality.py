@@ -87,7 +87,12 @@ class Player:
         time.sleep(2)
         this.position += spaces
         if (this.position > 39):
-            this.money += 200
+            if(this.race == Race.INDIAN):
+                this.modifybalance(140, "pass go while not looking like you're good at managing finance so they pay you less")
+            elif (this.race == Race.ASIAN):
+                this.modifybalance(300, "pass go while looking trustworthy and smart")
+            else:
+                this.modifybalance(200, "pass go")
             this.turnssincecenterlink += 1
             this.position = this.position % 40
         print(f"You landed on {Cards.board[this.position].name}")
@@ -106,10 +111,18 @@ class Player:
         shouldbreak = False
         match action:
             case '1':
-                if (cardon.cardtype.value < 4):
-                    cardon.buy(this)
+                if (this.race != Race.INDIGENOUS):
+                    if (cardon.cardtype.value < 4):
+                        cardon.buy(this)
+                    else:
+                        print("You cannot buy this type of card!")
                 else:
-                    print("You cannot buy this type of card!")
+                    if (cardon.cardtype.value == 1):
+                        cardon.buy (this)
+                    elif (cardon.cardtype.value < 4):
+                        print("You cannot buy this type of card due to local laws not recognizing you as a full human being.")
+                    else:
+                        print("You cannot buy this type of card!")
             case '2':
                 if (cardon.cardtype.value == 1):
                     cardon.construct_house(this)
@@ -179,15 +192,25 @@ class Player:
         match cardon.cardtype.value:
             case 1 | 2:
                 if (cardon.owner != emptyplayer and cardon.owner != this):
-                    this.modifybalance(cardon.rent * -1)
+                    this.modifybalance(cardon.rent * -1, "pay rent to owner")
                     this.bankruptcheck()
             case 3:
                 if (cardon.owner != emptyplayer and cardon.owner != this):
-                    this.modifybalance(cardon.multi * -1 * dicesum)
+                    this.modifybalance(cardon.multi * -1 * dicesum, "pay usage cost to owner")
                     this.bankruptcheck()
             case 4:
-                this.modifybalance(cardon.tax * -1)
-                this.bankruptcheck()
+                if (this.race == Race.ASIAN):
+                    this.modifybalance(cardon.tax * -2, "pay tax and pay extra because you look good at math")
+                    this.bankruptcheck()
+                elif (this.race == Race.INDIAN & cardon.name == "Luxury Tax"):
+                    this.modifybalance(cardon.tax * -3, "pay tax and pay extra extra because the clerk doesn't like Indians")
+                    this.bankruptcheck()
+                else:
+                    this.modifybalance(cardon.tax * -1, "pay tax")
+                    this.bankruptcheck()
+            case 5:
+                if (this.race == Race.ASIAN & cardon.name == "Free Parking"):
+                    this.modifybalance(-100, "preemptive bad driving fine")
             case 6:
                 if (this.race != Race.LATINO):
                     cardon.effect(this)
@@ -198,7 +221,7 @@ class Player:
                 cardon.effect(this)
                 this.bankruptcheck()
             case 9:
-                this.modifybalance(200)
+                this.modifybalance(200, "landed on go")
         currentplayer = currentplayer.next
         preplayerturn(currentplayer.data)
         pass
@@ -212,17 +235,17 @@ class Player:
     def chest(this):
         print("Placeholder for community chest")
         pass
-    def modifybalance(this, amount):
+    def modifybalance(this, amount, reason):
         if (this.race != Race.INDIAN):
             this.money = this.money + amount
-            print(f"Your balance has been modified by {amount}.")
+            print(f"Your balance has been modified by {amount}. Reason: {reason}")
             return(this.money)
         elif (amount > 0):
             this.money = this.money + 0.8 * amount
-            print(f"Your balance has been modified by {amount}. \nAs you are Indian, the banker took a look at you and waved his nose as if to dispell a curry smell. \n20% of your transaction has been voided due to racism.")
+            print(f"Your balance has been modified by {amount}. Reason: {reason} \nAs you are Indian, the banker took a look at you and waved his nose as if to dispell a curry smell. \n20% of your transaction has been voided due to racism.")
         else:
             this.money = this.money + 1.2 * amount
-            print(f"Your balance has been modified by {amount}. \nAs you are Indian, the banker thought you were reckless with your spending and decided to teach you a lesson by charging 20% more for your transaction.")
+            print(f"Your balance has been modified by {amount}. Reason: {reason} \nAs you are Indian, the banker thought you were reckless with your spending and decided to teach you a lesson by charging 20% more for your transaction.")
     def refreshrent(this, property):
             trainstations = []
             utilities = []
@@ -382,7 +405,7 @@ class Card:
         if (player == this.owner):
             this.owner = emptyplayer
             sellprice = int((this.price + (this.houseprice * this.housesbuilt))/2)
-            player.modifybalance(sellprice)
+            player.modifybalance(sellprice, "sold property")
             player.refreshrent(this)
             player.properties.remove(this)
             this.value = this.price
@@ -393,23 +416,45 @@ class Card:
             print("You don't own that property!")
         
     def construct_house (this, player):
-            if (player.money >= this.houseprice and player == this.owner and this.housesbuilt < 5 and player.builthousethisturn == False):
-                player.modifybalance(this.houseprice * -1)
-                this.housesbuilt += 1
-                this.rent = this.set.value * this.rentbase[this.housesbuilt]
-                this.value += this.houseprice
+            if (player.race != Race.INDIGENOUS):
+                if (player.money >= this.houseprice and player == this.owner and this.housesbuilt < 5 and player.builthousethisturn == False):
+                    player.modifybalance(this.houseprice * -1, "built house")
+                    this.housesbuilt += 1
+                    this.rent = this.set.value * this.rentbase[this.housesbuilt]
+                    this.value += this.houseprice
+                else:
+                    print("Building not successful. Balance has not been deducted.")
             else:
-                print("Building not successful. Balance has not been deducted.")
+                if (player.money >= this.houseprice and player == this.owner and this.housesbuilt < 3 and player.builthousethisturn == False):
+                    player.modifybalance(this.houseprice * -1, "built house")
+                    this.housesbuilt += 1
+                    this.rent = this.set.value * this.rentbase[this.housesbuilt]
+                    this.value += this.houseprice
+                elif (this.housesbuilt == 3):
+                    print("The council won't approve any denser building plans because they don't trust indigenous people to be able to build competently.")
+                else:
+                    print("Building not successful. Balance has not been deducted.")
+
     def buy(this, player):
         if (this.owner == emptyplayer):
-            if (player.money > this.price):
-                player.modifybalance(this.price * -1)
-                player.refreshrent(this)
-                player.properties.append(this)
-                player.builthousethisturn = True
-                this.owner = player
+            if (player.race != Race.BLACK):
+                if (player.money > this.price):
+                    player.modifybalance(this.price * -1, "bought property")
+                    player.refreshrent(this)
+                    player.properties.append(this)
+                    player.builthousethisturn = True
+                    this.owner = player
+                else:
+                    print("Not enough money!")
             else:
-                print("Not enough money!")
+                if (player.money > this.price * 2):
+                    player.modifybalance(this.price * -2, "bought property at double the cost due to archaic racist laws")
+                    player.refreshrent(this)
+                    player.properties.append(this)
+                    player.builthousethisturn = True
+                    this.owner = player
+                else:
+                    print("Not enough money!")
         else:
             print("Someone else already owns this card!")
 # card data
@@ -464,7 +509,6 @@ def clearconsole():
     os.system("cls" if os.name == "nt" else "clear")
 
 def tokenselect(player_name_list):
-    # List of available tokens (races)
     tokens = [Race.ASIAN, Race.BLACK, Race.INDIAN, Race.INDIGENOUS, Race.WHITE, Race.LATINO]
     print("\nToken assignments:")
     global player_list
