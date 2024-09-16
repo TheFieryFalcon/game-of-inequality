@@ -40,7 +40,7 @@ class Set(Enum):
     BLUE = 40
 
 class Player:
-    money = 200
+    money = 2000
     properties = []
     race = Race.PLACEHOLDER
     name = 'Placeholder'
