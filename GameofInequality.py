@@ -8,9 +8,9 @@ import random
 import time
 from enum import Enum
 import scll
-# declare globals
-currentplayer = None
-player_list = None
+#preinit statics
+currentplayer =  scll.Node(None)
+player_list = scll.SingularCircularLinkedList()
 #init types
 class Race(Enum):
     PLACEHOLDER = 0
@@ -215,7 +215,7 @@ class Player:
                     this.modifybalance(cardon.tax * -1, "pay tax")
                     this.bankruptcheck()
             case 5:
-                if (this.race == Race.ASIAN & cardon.name == "Free Parking"):
+                if (this.race == Race.ASIAN and cardon.name == "Free Parking"):
                     this.modifybalance(-100, "preemptive bad driving fine")
             case 6:
                 if (this.race != Race.LATINO):
@@ -227,6 +227,7 @@ class Player:
                 this.bankruptcheck()
             case 9:
                 this.modifybalance(200, "landed on go")
+        global currentplayer
         currentplayer = currentplayer.next
         preplayerturn(currentplayer.data)
     def gotojail(this):
@@ -234,9 +235,11 @@ class Player:
         this.injail = True
         if(this.race == Race.BLACK):
             print("Police brutality has caused you to lose one of your properties.")
-            lost = random.choice(this.properties)
-            print(f"You have lost {lost.name}!")
-            this.properties.remove(lost)
+            if (len(this.properties) > 0):
+                lost = random.choice(this.properties)
+                print(f"You have lost {lost.name}!")
+                this.properties.remove(lost)
+
     def chance(this):
         print("Drawing Chance card...")
         time.sleep(2)
@@ -706,12 +709,12 @@ def clearconsole():
 def tokenselect(player_name_list):
     tokens = [Race.ASIAN, Race.BLACK, Race.INDIAN, Race.INDIGENOUS, Race.WHITE, Race.LATINO]
     print("\nToken assignments:")
-    player_list = scll.SingularCircularLinkedList()
     for player in player_name_list:
         if tokens:
             race = random.choice(tokens)
             print(f"Player {player} got the token {race.name}!")
             player_list.append(Player(player, race))
+    global currentplayer
     currentplayer = player_list.getnodeat(0)
     preplayerturn(currentplayer.data)
             #Allow duplicates
