@@ -26,7 +26,7 @@ class SingularCircularLinkedList:
             current.next = new_node
             # Make the new node point back to the head
             new_node.next = self.head
-
+    #TODO: LAST BUG WHY IS THIS LOOPING ENDLESSLY WHEN I=1
     def traverse(self, until):
         # Return the elements of a linked list as a list
         if not self.head:
