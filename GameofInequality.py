@@ -178,7 +178,10 @@ class Player:
         #pay rent
         #activate effects of spaces
         #bankruptcy logic
+        global currentplayer
+        global player_list
         preplayerturn(currentplayer.next.data)
+        currentplayer = currentplayer.next
         pass
     def gotojail(this):
         pass
@@ -391,24 +394,25 @@ class Cards:
 
     board = [go, okr, chest1, wchr, itax, kcs, tai, chance1, er, pvr, jail, pm, ecomp, wh, nta, mbs, bs, chest2, gms, vs, fp, str, chance2, fs, ts, fss, ls, cos, water, picady, gotojail, rgs, oxst, community3, bos, lsst, chance3, pkln, suptx, mayfr]
 
-player_list = scll.SingularCircularLinkedList()
-player_list.append(emptyplayer)
-currentplayer = player_list.getnodeat(0) #TODO: find out what the fuck is wrong with this
+
         
 # define modules
 def clearconsole():
     os.system("cls" if os.name == "nt" else "clear")
 
-def tokenselect(player_list):
+def tokenselect(player_name_list):
     # List of available tokens (races)
     tokens = [Race.ASIAN, Race.BLACK, Race.INDIAN, Race.INDIGENOUS, Race.WHITE, Race.LATINO]
     print("\nToken assignments:")
+    global player_list
+    player_list = scll.SingularCircularLinkedList()
     for player in player_name_list:
         if tokens:
             race = random.choice(tokens)
             print(f"Player {player} got the token {race.name}!")
             player_list.append(Player(player, race))
-    player_list.deleteat(0)
+    
+    global currentplayer
     currentplayer = player_list.getnodeat(0)
     preplayerturn(currentplayer.data)
             #Allow duplicates
@@ -426,7 +430,7 @@ def preplayerturn(player):
 def gamestart():
     print("Welcome everyone, it is time for the grand token selection. Each player is given a token with which they (\n) are either given perks or unhappiness.")
     print("This is the part that will determine your fate in the Game of Inequality.")
-    tokenselect(player_list)
+    tokenselect(player_name_list)
     
 
 
