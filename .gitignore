@@ -1,3 +1,6 @@
 __pycache__/carddata.cpython-312.pyc
 __pycache__/GameofInequality.cpython-312.pyc
 __pycache__/scll.cpython-312.pyc
+GameofInequality.bin
+.DS_Store
+GameofInequality.dist/

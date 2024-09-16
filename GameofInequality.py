@@ -1,5 +1,5 @@
 # Game of Inequality
-# Abhijith Madhavan and Uno Wong
+# [Redacted]
 # September 2024
 
 # import libraries
@@ -67,7 +67,7 @@ class Player:
         "Railroads": [],
         "Utilities": []
     }
-    clbenefits = [0, 0, 300, 600, 1000, 1500, 2000]
+    clbenefits = [0, 0, 300, 600, 400, 1500, 2000]
     def __init__(this, name, race):
         this.name = name
         this.race = race
@@ -478,17 +478,18 @@ class Player:
         player_list.deleteat(player_list.findnode(this))
     def jailedplayerturn(this):
         this.turnsinjail += 1
-        if(this.turnsinjail >= 3 and this.race != Race.BLACK):
+        if(this.turnsinjail <= 3 and this.race != Race.BLACK):
             this.injailseq()
-        elif(this.turnsinjail >= 15):
-            this.injailseq
+        elif(this.turnsinjail <= 15):
+            this.injailseq()
         else:
             print("You have served your sentence and may go free.")
             this.injail = False
             this.turnsinjail = 0
+            this.position = 10
             this.rolldice()
     def injailseq(this):
-            a = input(f"YOU ARE IN JAIL. You have served {this.turnsinjail} turns of your sentence so far. \n1 to roll doubles to try to escape (if applicable) \n2 to bribe your way out ($50) \n3 to use your Get Out of Jail Free card (if applicable) \n9 to end turn\n")
+            a = input(f"{this.name}, YOU ARE IN JAIL. You have served {this.turnsinjail} turns of your sentence so far. \n1 to roll doubles to try to escape (if applicable) \n2 to bribe your way out ($50) \n3 to use your Get Out of Jail Free card (if applicable) \n9 to end turn\n")
             match(a):
                 case '1':
                         if (this.race != Race.BLACK):
@@ -503,12 +504,12 @@ class Player:
                                 print ("You rolled doubles. You are now free.")
                                 this.injail = False
                                 this.turnsinjail = 0
+                                this.position = 10
                                 this.rolldice()
                             else:
                                 print ("You failed to roll doubles. You have been caught and your turn has been automatically ended.")
-                                currentplayer = currentplayer.next
-                                preplayerturn(currentplayer.data)
-                        if (this.race != Race.BLACK):
+                                this.postplayerturn(emptycard, 0)
+                        else:
                             print("You cannot attempt to escape as one of the officers has an eye on you at all times.")
                 case '2':
                     if (this.race != Race.BLACK):
@@ -517,6 +518,7 @@ class Player:
                             print("You will be released next turn.")
                             this.injail = False
                             this.turnsinjail = 0
+                            this.position = 10
                         else:
                             print("You do not have enough money!")
                     else:
@@ -525,6 +527,7 @@ class Player:
                             print("You will be released next turn. You paid 10x more before they would finally let you go.")
                             this.injail = False
                             this.turnsinjail = 0
+                            this.position = 10
                         else:
                             print("You do not have enough money! As a black person, you need 500 dollars to bribe officials as they are far more averse to taking bribes from blacks.")
                 case '3':
@@ -533,13 +536,17 @@ class Player:
                         print("You have used your Get Out of Jail Free card. You are now free.")
                         this.injail = False
                         this.turnsinjail = 0
+                        this.position = 10
                         this.rolldice()
                     else:
                         print("You have no such card.")
                         this.injailseq()
                 case '9':
-                    currentplayer = currentplayer.next
-                    preplayerturn(currentplayer.data)
+                    this.postplayerturn(emptycard, 0)
+                case _:
+                    print("Unrecognized input.")
+                    this.injailseq()
+            this.injailseq()
 #too much effort to implement
 '''            for key in this.sortedproperties.keys():3
                 this.fullsetbonus(key, sp2[key].pop(0), sp2)
@@ -620,6 +627,7 @@ class Card:
                     this.housesbuilt += 1
                     this.rent = this.set.value * this.rentbase[this.housesbuilt]
                     this.value += this.houseprice
+                    player.builthousethisturn = True
                 else:
                     print("Building not successful. Balance has not been deducted.")
             else:
@@ -628,6 +636,7 @@ class Card:
                     this.housesbuilt += 1
                     this.rent = this.set.value * this.rentbase[this.housesbuilt]
                     this.value += this.houseprice
+                    player.builthousethisturn = True
                 elif (this.housesbuilt == 3):
                     print("The council won't approve any denser building plans because they don't trust indigenous people to be able to build competently.")
                 else:
@@ -655,6 +664,7 @@ class Card:
                     print("Not enough money!")
         else:
             print("Someone else already owns this card!")
+emptycard = Card(CardType.PLACEHOLDER, "EMPTY", 0)
 # card data
 class Cards:
     go = Card(CardType.GO, "GO", 1)
@@ -731,7 +741,8 @@ def preplayerturn(player):
             else:
                 player.rolldice()
         else:
-            print(f"{player_list.getnodeat(0)} has won with {len(player.properties)} properties and {player.money} dollars.")
+            print(f"{player_list.getnodeat(0).name} has won with {len(player.properties)} properties and {player.money} dollars.")
+            time.sleep(30)
     else:
         player.jailedplayerturn()
 
@@ -742,7 +753,7 @@ def gamestart():
 
 # mainline
 print("************************************************************")
-print("---------- Abhijith Madhavan and Uno Wong present: ---------")
+print("---------- [Redacted] present: ---------")
 print("------------------- Game of Inequality ---------------")
 print("-------- The prejudice of institutional racism -------")
 print("************************************************************")
