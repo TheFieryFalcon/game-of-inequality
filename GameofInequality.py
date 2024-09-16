@@ -8,7 +8,9 @@ import random
 import time
 from enum import Enum
 import scll
-
+# declare globals
+currentplayer = None
+player_list = None
 #init types
 class Race(Enum):
     PLACEHOLDER = 0
@@ -189,8 +191,6 @@ class Player:
         else:
             this.postplayerturn(cardon, dicesum)
     def postplayerturn(this, cardon, dicesum):
-        global currentplayer
-        global player_list
         match cardon.cardtype.value:
             case 1 | 2:
                 if (cardon.owner != emptyplayer and cardon.owner != this and cardon.owner.injail == False):
@@ -503,8 +503,6 @@ class Player:
                                 this.rolldice()
                             else:
                                 print ("You failed to roll doubles. You have been caught and your turn has been automatically ended.")
-                                global currentplayer
-                                global player_list
                                 currentplayer = currentplayer.next
                                 preplayerturn(currentplayer.data)
                         if (this.race != Race.BLACK):
@@ -537,8 +535,6 @@ class Player:
                         print("You have no such card.")
                         this.injailseq()
                 case '9':
-                    global currentplayer
-                    global player_list
                     currentplayer = currentplayer.next
                     preplayerturn(currentplayer.data)
 #too much effort to implement
@@ -710,15 +706,12 @@ def clearconsole():
 def tokenselect(player_name_list):
     tokens = [Race.ASIAN, Race.BLACK, Race.INDIAN, Race.INDIGENOUS, Race.WHITE, Race.LATINO]
     print("\nToken assignments:")
-    global player_list
     player_list = scll.SingularCircularLinkedList()
     for player in player_name_list:
         if tokens:
             race = random.choice(tokens)
             print(f"Player {player} got the token {race.name}!")
             player_list.append(Player(player, race))
-    
-    global currentplayer
     currentplayer = player_list.getnodeat(0)
     preplayerturn(currentplayer.data)
             #Allow duplicates
