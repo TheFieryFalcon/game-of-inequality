@@ -82,6 +82,7 @@ class Player:
             this.rolleddoubles = this.rolleddoubles + 1
         this.move((dice1+dice2))
     def move (this, spaces):
+        this.builthousethisturn = False
         print(f"Moving {spaces} spaces...")
         time.sleep(2)
         this.position += spaces
@@ -98,7 +99,6 @@ class Player:
         else:
             this.playerturn(spaces)
     def playerturn (this, dicesum):
-        this.builthousethisturn = False
         this.rolleddoubles = 0
         this.timesmoved = 0
         cardon = Cards.board[this.position]
@@ -127,7 +127,7 @@ class Player:
                         if (cardon.owner == emptyplayer):
                             print(f" Set: {cardon.set.name} \n Price: {cardon.price} \n Base rent: {cardon.set.value} \n Rent with 1 house: {cardon.set.value * cardon.rentbase[1]} \n Rent with 2 houses: {cardon.set.value * cardon.rentbase[2]} \n Rent with 3 houses: {cardon.set.value * cardon.rentbase[3]} \n Rent with 4 houses: {cardon.set.value * cardon.rentbase[4]} \n Rent with a hotel: {cardon.set.value * cardon.rentbase[5]}")
                         else:
-                            print(f" Set: {cardon.set.name} \n Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race.name} \n Rent: {cardon.rent}")
+                            print(f" Set: {cardon.set.name} \n Owner: {cardon.owner.name} \n Owner's race: {cardon.owner.race.name} \n Houses: {cardon.housesbuilt} \n Rent: {cardon.rent}")
                     case 2:
                         if (cardon.owner == emptyplayer):
                             print(" Rent with 1 railroad: 25 \n Rent with 2 railroads: 50 \n Rent with 3 railroads: 100 \n Rent with 4 railroads: 200")
@@ -170,7 +170,7 @@ class Player:
             case _:
                 print("Invalid input. Please try again")
         if (shouldbreak == False):
-            this.playerturn()
+            this.playerturn(dicesum)
         else:
             this.postplayerturn(cardon, dicesum)
     def postplayerturn(this, cardon, dicesum):
@@ -180,33 +180,41 @@ class Player:
             case 1 | 2:
                 if (cardon.owner != emptyplayer and cardon.owner != this):
                     this.modifybalance(cardon.rent * -1)
+                    this.bankruptcheck()
             case 3:
                 if (cardon.owner != emptyplayer and cardon.owner != this):
                     this.modifybalance(cardon.multi * -1 * dicesum)
+                    this.bankruptcheck()
             case 4:
                 this.modifybalance(cardon.tax * -1)
+                this.bankruptcheck()
             case 6:
                 if (this.race != Race.LATINO):
                     cardon.effect(this)
+                    this.bankruptcheck()
                 else:
                     this.gameover("illegally deported back to Venezuela")
             case 7 | 8:
                 cardon.effect(this)
+                this.bankruptcheck()
             case 9:
                 this.modifybalance(200)
-        preplayerturn(currentplayer.next.data)
         currentplayer = currentplayer.next
+        preplayerturn(currentplayer.data)
         pass
     def gotojail(this):
+        print("Go to jail")
         pass
         # abhijith implement these
     def chance(this):
+        print("Placeholder for chance card")
         pass
     def chest(this):
+        print("Placeholder for community chest")
         pass
     def modifybalance(this, amount):
         if (this.race != Race.INDIAN):
-            this.money == this.money + amount
+            this.money = this.money + amount
             print(f"Your balance has been modified by {amount}.")
             return(this.money)
         elif (amount > 0):
@@ -373,7 +381,7 @@ class Card:
     def sell(this, player):
         if (player == this.owner):
             this.owner = emptyplayer
-            sellprice = (this.price + (this.houseprice * this.housesbuilt))/2
+            sellprice = int((this.price + (this.houseprice * this.housesbuilt))/2)
             player.modifybalance(sellprice)
             player.refreshrent(this)
             player.properties.remove(this)
@@ -399,6 +407,7 @@ class Card:
                 player.refreshrent(this)
                 player.properties.append(this)
                 player.builthousethisturn = True
+                this.owner = player
             else:
                 print("Not enough money!")
         else:
@@ -414,7 +423,7 @@ class Cards:
     tai = Card(CardType.PROPERTY, "The Angel, Islington", 7, b=100, c=Set.CYAN)
     chance1 = Card(CardType.CHANCE, "Chance Card", 8)
     er = Card(CardType.PROPERTY, "Euston Road", 9, b=100, c=Set.CYAN)
-    pvr = Card(CardType.PROPERTY, "Pentonville Road", 10, b=120, c=Set.BROWN)
+    pvr = Card(CardType.PROPERTY, "Pentonville Road", 10, b=120, c=Set.CYAN)
     jail = Card(CardType.FREE, "Just Visiting/Jail", 11)
     pm = Card(CardType.PROPERTY, "Pall Mall", 12, b=140, c=Set.PURPLE)
     ecomp = Card(CardType.UTILITY, "Electric Company", 13)
@@ -473,16 +482,19 @@ def tokenselect(player_name_list):
 def preplayerturn(player):
     #ORDER OF TURN
     #preplayerturn -> rolldice -> move -> playerturn -> postplayerturn
-    print(f"\n{player}'s turn")
-    i = input("Press N to roll dice \n")
-    if i != "n":
-        print ("Please press N to roll dice")
-        preplayerturn(player)
+    if (len(player_list.traverse(1000)) != 1):
+        print(f"\n{player}'s turn")
+        i = input("Press N to roll dice \n")
+        if i != "n":
+            print ("Please press N to roll dice")
+            preplayerturn(player)
+        else:
+            player.rolldice()
     else:
-        player.rolldice()
+        print(f"{player_list.getnodeat(0)} has won with {len(player.properties)} properties and {player.money} dollars.")
 
 def gamestart():
-    print("Welcome everyone, it is time for the grand token selection. Each player is given a token with which they (\n) are either given perks or unhappiness.")
+    print("Welcome everyone, it is time for the grand token selection. Each player is given a token with which they \nare either given perks or unhappiness.")
     print("This is the part that will determine your fate in the Game of Inequality.")
     tokenselect(player_name_list)
     
@@ -491,9 +503,7 @@ def gamestart():
 
 # mainline
 print("************************************************************")
-time.sleep(5)
 print("---------- Abhijith Madhavan and Uno Wong present: ---------")
-time.sleep(3)
 print("------------------- Game of Inequality ---------------")
 print("-------- The prejudice of institutional racism -------")
 print("************************************************************")
@@ -506,7 +516,7 @@ while True:
     if nameno < 2:
         print("Not enough players!")
         continue
-    elif nameno > 5:
+    elif nameno > 6:
         print("Too many players!")
         continue
     player_name_list = []
