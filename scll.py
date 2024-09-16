@@ -82,4 +82,18 @@ class SingularCircularLinkedList:
                 node = current
                 break
         return(node)
-
+        current.next = current.next.next
+    def findnode(self, data):
+        if not self.head:
+            return
+        current = self.head
+        i = 0
+        while True:
+            i += 1
+            current = current.next
+            if ((current.data == data)):
+                pos = i
+                break
+            elif(current == self.head):
+                pos = -1
+        return(pos)

@@ -96,8 +96,8 @@ class Player:
         elif this.rolleddoubles == this.timesmoved:
             this.rolldice()
         else:
-            this.playerturn()
-    def playerturn (this):
+            this.playerturn(spaces)
+    def playerturn (this, dicesum):
         this.builthousethisturn = False
         this.rolleddoubles = 0
         this.timesmoved = 0
@@ -172,14 +172,28 @@ class Player:
         if (shouldbreak == False):
             this.playerturn()
         else:
-            this.postplayerturn()
-    def postplayerturn(this):
-        #TODO: MAIN THING TOMORROW
-        #pay rent
-        #activate effects of spaces
-        #bankruptcy logic
+            this.postplayerturn(cardon, dicesum)
+    def postplayerturn(this, cardon, dicesum):
         global currentplayer
         global player_list
+        match cardon.cardtype.value:
+            case 1 | 2:
+                if (cardon.owner != emptyplayer and cardon.owner != this):
+                    this.modifybalance(cardon.rent * -1)
+            case 3:
+                if (cardon.owner != emptyplayer and cardon.owner != this):
+                    this.modifybalance(cardon.multi * -1 * dicesum)
+            case 4:
+                this.modifybalance(cardon.tax * -1)
+            case 6:
+                if (this.race != Race.LATINO):
+                    cardon.effect(this)
+                else:
+                    this.gameover("illegally deported back to Venezuela")
+            case 7 | 8:
+                cardon.effect(this)
+            case 9:
+                this.modifybalance(200)
         preplayerturn(currentplayer.next.data)
         currentplayer = currentplayer.next
         pass
@@ -262,7 +276,41 @@ class Player:
                 trainstation.rent == trainstationrents[len(trainstations)]
             for utility in utilities:
                 utility.multi == utilitymultis[len(utilities)]
-                
+    def bankruptcheck(this):
+        if this.money >= 0:
+            pass
+        else:
+            valuesum = 0
+            for property in this.properties:
+                valuesum += (property.value / 2)
+            if (valuesum - this.money >= 0):
+                while this.money < 0:
+                    print("Your balance is below zero! Sell properties to get money.")
+                    print("Type property name to sell the property. Type 'declarebankruptcy' to declare bankruptcy prematurely.")
+                    for key in this.sortedproperties.keys():
+                        if(len(this.sortedproperties[key]) > 0):
+                            print (f" {key} Set:")
+                            for property in this.sortedproperties[key]:
+                                print(f" {property.name} - {property.value}")
+                    a = input("\n")
+                    match a:
+                        case 'declarebankruptcy':
+                            this.gameover("declared bankruptcy")
+                        case propertyname:
+                            matched = False
+                            for property in this.properties:
+                                if (property.name == propertyname):
+                                    property.sell()
+                                    matched = True
+                                    break
+                            if (matched == False):
+                                print("No match found, please try again")
+            else:
+                this.gameover("went bankrupt")
+    def gameover(this, reason):
+        print(f"Player {this.name} has lost the game. Reason: {reason}")
+        player_list.deleteat(player_list.findnode(this))
+
 #too much effort to implement
 '''            for key in this.sortedproperties.keys():3
                 this.fullsetbonus(key, sp2[key].pop(0), sp2)
@@ -281,6 +329,7 @@ class Card:
     owner = emptyplayer
     housesbuilt = 0
     rentbase = [1, 4, 12, 28, 34, 40]
+    value = 0
     def __init__(this, cardtype, name, space, **kwargs):
         b = kwargs.get('b', None)
         c = kwargs.get('c', None)
@@ -291,6 +340,7 @@ class Card:
                 this.price = b
                 this.set = c
                 this.rent = this.set.value
+                this.value = this.price
                 match this.set:
                     case Set.BROWN | Set.CYAN:
                         this.houseprice = 50
@@ -303,9 +353,11 @@ class Card:
             case 3:
                 this.multiplier = 4
                 this.price = 150
+                this.value = this.price
             case 2:
                 this.rent = 25
                 this.price = 200
+                this.value = this.price
             case 4:
                 this.tax = b
             case 6:
@@ -325,6 +377,7 @@ class Card:
             player.modifybalance(sellprice)
             player.refreshrent(this)
             player.properties.remove(this)
+            this.value = this.price
             this.housesbuilt = 0
             if (this.cardtype == CardType.PROPERTY):
                 this.rent = this.set.value
@@ -336,6 +389,7 @@ class Card:
                 player.modifybalance(this.houseprice * -1)
                 this.housesbuilt += 1
                 this.rent = this.set.value * this.rentbase[this.housesbuilt]
+                this.value += this.houseprice
             else:
                 print("Building not successful. Balance has not been deducted.")
     def buy(this, player):
