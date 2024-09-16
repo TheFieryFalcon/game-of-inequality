@@ -40,7 +40,7 @@ class Set(Enum):
     BLUE = 40
 
 class Player:
-    money = 2000
+    money = 200
     properties = []
     race = Race.PLACEHOLDER
     name = 'Placeholder'
@@ -51,6 +51,8 @@ class Player:
     timesmoved = 0
     builthousethisturn = False
     turnssincecenterlink = 0
+    turnsinjail = 0
+    gojfc = 0
     sortedproperties = {
         "Brown": [],
         "Cyan": [],
@@ -191,18 +193,22 @@ class Player:
         global player_list
         match cardon.cardtype.value:
             case 1 | 2:
-                if (cardon.owner != emptyplayer and cardon.owner != this):
+                if (cardon.owner != emptyplayer and cardon.owner != this and cardon.owner.injail == False):
                     this.modifybalance(cardon.rent * -1, "pay rent to owner")
                     this.bankruptcheck()
+                elif (cardon.owner.injail == True):
+                    print("Rent was not collected because owner is in jail")
             case 3:
-                if (cardon.owner != emptyplayer and cardon.owner != this):
-                    this.modifybalance(cardon.multi * -1 * dicesum, "pay usage cost to owner")
+                if (cardon.owner != emptyplayer and cardon.owner != this and cardon.owner.injail == False):
+                    this.modifybalance(cardon.multi * -1 * dicesum, "pay usage fees to owner")
                     this.bankruptcheck()
+                elif (cardon.owner.injail == True):
+                    print("Usage fees was not collected because owner is in jail")
             case 4:
                 if (this.race == Race.ASIAN):
                     this.modifybalance(cardon.tax * -2, "pay tax and pay extra because you look good at math")
                     this.bankruptcheck()
-                elif (this.race == Race.INDIAN & cardon.name == "Luxury Tax"):
+                elif (this.race == Race.INDIAN and cardon.name == "Luxury Tax"):
                     this.modifybalance(cardon.tax * -3, "pay tax and pay extra extra because the clerk doesn't like Indians")
                     this.bankruptcheck()
                 else:
@@ -214,7 +220,6 @@ class Player:
             case 6:
                 if (this.race != Race.LATINO):
                     cardon.effect(this)
-                    this.bankruptcheck()
                 else:
                     this.gameover("illegally deported back to Venezuela")
             case 7 | 8:
@@ -224,28 +229,155 @@ class Player:
                 this.modifybalance(200, "landed on go")
         currentplayer = currentplayer.next
         preplayerturn(currentplayer.data)
-        pass
     def gotojail(this):
-        print("Go to jail")
-        pass
-        # abhijith implement these
+        this.position = 99
+        this.injail = True
+        if(this.race == Race.BLACK):
+            print("Police brutality has caused you to lose one of your properties.")
+            lost = random.choice(this.properties)
+            print(f"You have lost {lost.name}!")
+            this.properties.remove(lost)
     def chance(this):
-        print("Placeholder for chance card")
-        pass
+        print("Drawing Chance card...")
+        time.sleep(2)
+        cardid = random.randint(1, 16)
+        match cardid:
+            case 1:
+                print("Advance to Mayfair")
+                this.position = 39
+                this.playerturn(0)
+            case 2:
+                print("Advance to Go")
+                this.position = 0
+                this.playerturn(0)
+            case 3:
+                print("Advance to Trafalgar Square")
+                this.position = 24
+                this.playerturn(0)
+            case 4:
+                print("Advance to Pall Mall")
+                this.position = 11
+                this.playerturn(0)
+            case 5 | 6:
+                print("Advance to the nearest station")
+                this.position = int(this.position/10) + 5
+                this.playerturn(0)
+            case 7:
+                print("Advance to the nearest utility")
+                this.position = min(abs(28 - this.position), abs(12 - this.position))
+                this.playerturn(0)
+            case 8:
+                print("Bank pays you dividend of $50")
+                this.modifybalance(50, "chance")
+            case 9:
+                print("Get Out of Jail Free")
+                this.gojfc += 1
+            case 10:
+                print("Go Back 3 Spaces")
+                this.position -= 3
+                this.playerturn(7)
+            case 11:
+                print("Go to jail. Go directly to jail.")
+                this.gotojail()
+            case 12:
+                print("General repairs on all property. Pay $30 for each house.")
+                i = 0
+                for property in this.properties:
+                    i += property.housesbuilt * 30
+                this.modifybalance(i * -1, "chance")
+            case 13:
+                print("Speeding fine, $15")
+                this.modifybalance(-15, "chance")
+                this.bankruptcheck()
+            case 14:
+                print("Take a trip to King's Cross Station")
+                this.position = 5
+                this.playerturn(0)
+            case 15:
+                print("You have been elected Chairman of the Board. Pay each player $50")
+                for player in player_list.traverse(1000):
+                    if (player != this):
+                        player.modifybalance(50, f"Dividends paid generously by {this.name}")
+                this.modifybalance((len(player_list.traverse(1000)) - 1) * -50, "chance")
+                this.bankruptcheck()
+            case 16:
+                print("Your building loan matures. Gain $150")
+                this.modifybalance(150, "chance")
     def chest(this):
-        print("Placeholder for community chest")
-        pass
+        print("Drawing Community Chest card...")
+        time.sleep(2)
+        cardid = random.randint(1, 16)
+        match cardid:
+            case 1:
+                print("Advance to Go")
+                this.position = 0
+                this.playerturn(0)
+            case 2:
+                print("Bank error in your favor. Collect $200")
+                this.modifybalance(200, "community chest")
+            case 3:
+                print("Doctor's fee. Pay $50")
+                this.modifybalance(-50, "community chest")
+                this.bankruptcheck()
+            case 4:
+                print("From sale of stock you get $50")
+                this.modifybalance(50, "community chest")
+            case 5:
+                print("Get Out of Jail Free")
+                this.gojfc += 1
+            case 6:
+                print("Go to jail. Go directly to jail.")
+                this.gotojail()
+            case 7:
+                print("Holiday fund matures. Collect $100")
+                this.modifybalance(100, "community chest")
+            case 8:
+                print("Income tax refund, collect $20")
+                this.modifybalance(20, "community chest")
+            case 9:
+                print("It's your birthday. Collect $10 from every player")
+                for player in player_list.traverse(1000):
+                    if (player != this):
+                        player.modifybalance(-10, f"Birthday gift for {this.name}")
+                this.modifybalance((len(player_list.traverse(1000)) - 1) * 10, "community chest")
+            case 10:
+                print("Life insurance matures. Collect $100")
+                this.modifybalance(100, "community chest")
+            case 11:
+                print("Pay hospital fees of $100")
+                this.modifybalance(-100, "community chest")
+                this.bankruptcheck()
+            case 12:
+                print("Pay school fees of $50")
+                this.modifybalance(-50, "community chest")
+                this.bankruptcheck()
+            case 13:
+                print("Recieve $25 consultancy fee")
+                this.modifybalance(25, "community chest")
+            case 14:
+                print("Assessed for street repairs. Pay $60 for each house.")
+                i = 0
+                for property in this.properties:
+                    i += property.housesbuilt * 60
+                this.modifybalance(i * -1, "chance")
+            case 15:
+                print("You have won second prize in a beauty contest. Collect $10")
+                this.modifybalance(10, "community chest")
+            case 16:
+                print("Inherit $100")
+                this.modifybalance(100, "community chest")
+
     def modifybalance(this, amount, reason):
         if (this.race != Race.INDIAN):
             this.money = this.money + amount
-            print(f"Your balance has been modified by {amount}. Reason: {reason}")
+            print(f"Modified balance of {this.name} by {amount}. Reason: {reason}")
             return(this.money)
         elif (amount > 0):
             this.money = this.money + 0.8 * amount
-            print(f"Your balance has been modified by {amount}. Reason: {reason} \nAs you are Indian, the banker took a look at you and waved his nose as if to dispell a curry smell. \n20% of your transaction has been voided due to racism.")
+            print(f"Modified balance of {this.name} by {amount}. Reason: {reason} \nAs you are Indian, the banker took a look at you and waved his nose as if to dispell a curry smell. \n20% of your transaction has been voided due to racism.")
         else:
             this.money = this.money + 1.2 * amount
-            print(f"Your balance has been modified by {amount}. Reason: {reason} \nAs you are Indian, the banker thought you were reckless with your spending and decided to teach you a lesson by charging 20% more for your transaction.")
+            print(f"Modified balance of {this.name} by {amount}. Reason: {reason} \nAs you are Indian, the banker thought you were reckless with your spending and decided to teach you a lesson by charging 20% more for your transaction.")
     def refreshrent(this, property):
             trainstations = []
             utilities = []
@@ -341,7 +473,74 @@ class Player:
     def gameover(this, reason):
         print(f"Player {this.name} has lost the game. Reason: {reason}")
         player_list.deleteat(player_list.findnode(this))
-
+    def jailedplayerturn(this):
+        this.turnsinjail += 1
+        if(this.turnsinjail >= 3 and this.race != Race.BLACK):
+            this.injailseq()
+        elif(this.turnsinjail >= 15):
+            this.injailseq
+        else:
+            print("You have served your sentence and may go free.")
+            this.injail = False
+            this.turnsinjail = 0
+            this.rolldice()
+    def injailseq(this):
+            a = input(f"YOU ARE IN JAIL. You have served {this.turnsinjail} turns of your sentence so far. \n1 to roll doubles to try to escape (if applicable) \n2 to bribe your way out ($50) \n3 to use your Get Out of Jail Free card (if applicable) \n9 to end turn\n")
+            match(a):
+                case '1':
+                        if (this.race != Race.BLACK):
+                            random.seed()
+                            dice1 = random.randint(1, 6)
+                            dice2 = random.randint(1, 6)
+                            print("Rolling dice...")
+                            time.sleep(1)
+                            print (f"Dice 1: {dice1}")
+                            print (f"Dice 2: {dice2}")
+                            if dice1 == dice2:
+                                print ("You rolled doubles. You are now free.")
+                                this.injail = False
+                                this.turnsinjail = 0
+                                this.rolldice()
+                            else:
+                                print ("You failed to roll doubles. You have been caught and your turn has been automatically ended.")
+                                global currentplayer
+                                global player_list
+                                currentplayer = currentplayer.next
+                                preplayerturn(currentplayer.data)
+                        if (this.race != Race.BLACK):
+                            print("You cannot attempt to escape as one of the officers has an eye on you at all times.")
+                case '2':
+                    if (this.race != Race.BLACK):
+                        if(this.money > 50):
+                            this.modifybalance(-50, "bribe prison officials")
+                            print("You will be released next turn.")
+                            this.injail = False
+                            this.turnsinjail = 0
+                        else:
+                            print("You do not have enough money!")
+                    else:
+                        if(this.money > 500):
+                            this.modifybalance(-500, "bribe racist prison officials")
+                            print("You will be released next turn. You paid 10x more before they would finally let you go.")
+                            this.injail = False
+                            this.turnsinjail = 0
+                        else:
+                            print("You do not have enough money! As a black person, you need 500 dollars to bribe officials as they are far more averse to taking bribes from blacks.")
+                case '3':
+                    if(this.gojfc >= 1):
+                        this.gojfc -= 1
+                        print("You have used your Get Out of Jail Free card. You are now free.")
+                        this.injail = False
+                        this.turnsinjail = 0
+                        this.rolldice()
+                    else:
+                        print("You have no such card.")
+                        this.injailseq()
+                case '9':
+                    global currentplayer
+                    global player_list
+                    currentplayer = currentplayer.next
+                    preplayerturn(currentplayer.data)
 #too much effort to implement
 '''            for key in this.sortedproperties.keys():3
                 this.fullsetbonus(key, sp2[key].pop(0), sp2)
@@ -382,7 +581,7 @@ class Card:
                     case Set.GREEN | Set.BLUE:
                         this.houseprice = 200
             case 3:
-                this.multiplier = 4
+                this.multi = 4
                 this.price = 150
                 this.value = this.price
             case 2:
@@ -526,24 +725,24 @@ def tokenselect(player_name_list):
 def preplayerturn(player):
     #ORDER OF TURN
     #preplayerturn -> rolldice -> move -> playerturn -> postplayerturn
-    if (len(player_list.traverse(1000)) != 1):
-        print(f"\n{player}'s turn")
-        i = input("Press N to roll dice \n")
-        if i != "n":
-            print ("Please press N to roll dice")
-            preplayerturn(player)
+    if (player.injail == False):
+        if (len(player_list.traverse(1000)) != 1):
+            print(f"\n{player}'s turn")
+            i = input("Press N to roll dice \n")
+            if i != "n":
+                print ("Please press N to roll dice")
+                preplayerturn(player)
+            else:
+                player.rolldice()
         else:
-            player.rolldice()
+            print(f"{player_list.getnodeat(0)} has won with {len(player.properties)} properties and {player.money} dollars.")
     else:
-        print(f"{player_list.getnodeat(0)} has won with {len(player.properties)} properties and {player.money} dollars.")
+        player.jailedplayerturn()
 
 def gamestart():
     print("Welcome everyone, it is time for the grand token selection. Each player is given a token with which they \nare either given perks or unhappiness.")
     print("This is the part that will determine your fate in the Game of Inequality.")
     tokenselect(player_name_list)
-    
-
-
 
 # mainline
 print("************************************************************")
