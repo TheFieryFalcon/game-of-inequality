@@ -755,6 +755,10 @@ def preplayerturn(player):
                 player.rolldice()
         else:
             print(f"{player_list.getnodeat(0).name} has won with {len(player.properties)} properties and {player.money} dollars.")
+            time.sleep(5)
+            print("Institutional racism is defined as the prejudicial treatment of humans based on membership of a particular ethnic group (usually minority), (\n) arising from stereotypes that have become established within an institution or organisation. (\n) In the classroom, institutional racism can look like Indigenous students being treated differently than non-Indigenous students or singled out, (\n) not having culturally safe curriculum's or having curriculum that only present and favour colonial ideologies and using standard English as the language of assessment. (\n) The psychological impact of institutional racism on individual beings can be immense, contributing to depression, anxiety, stress and a feeling of alienation. This is caused by bullying, (\n) racist treatment of marginalised individuals and poor healthcare for underrepresented ethnic groups. (\n) Not only that, but their educational and job opportunities are already slim right now, (\n) so the future forecast is set to be worse. (\n) Also, marginalised communities are omitted from key resources and opportunities, (\n) and thus are deprived of the same quality of life as most European communities. (\n) We need to stop institutional racism, and any other form of discrimination for that matter, NOW, in order to avoid a detrimental future for these groups.")
+            time.sleep(25)
+            print("Thank you for playing Game of Inequality, and we, Abhijith Madhavan and Uno Wong, are looking forward to seeing you stand up against discrimination!")
             time.sleep(30)
     else:
         player.jailedplayerturn()
@@ -766,7 +770,7 @@ def gamestart():
 
 # mainline
 print("************************************************************")
-print("---------- Uno Wong and Abhijith Madhavan present: ---------")
+print("---------- Abhijith Madhavan and Uno Wong present: ---------")
 print("------------------- Game of Inequality ---------------------")
 print("------------ The prejudice of institutional racism ---------")
 print("************************************************************")
