@@ -1,5 +1,5 @@
 # Game of Inequality
-# [Redacted]
+# Uno Wong and Abhijith Madhavan
 # September 2024
 
 # import libraries
@@ -55,7 +55,13 @@ class Player:
     turnssincecenterlink = 0
     turnsinjail = 0
     gojfc = 0
-    sortedproperties = {
+    trainstations = []
+    utilities = []
+    clbenefits = [0, 0, 300, 600, 400, 1500, 2000]
+    def __init__(this, name, race):
+        this.name = name
+        this.race = race
+        this.sortedproperties = {
         "Brown": [],
         "Cyan": [],
         "Purple": [],
@@ -66,11 +72,7 @@ class Player:
         "Blue": [],
         "Railroads": [],
         "Utilities": []
-    }
-    clbenefits = [0, 0, 300, 600, 400, 1500, 2000]
-    def __init__(this, name, race):
-        this.name = name
-        this.race = race
+        }
     def __str__(this):
         return this.name
     def rolldice(this):
@@ -108,6 +110,10 @@ class Player:
         else:
             this.playerturn(spaces)
     def playerturn (this, dicesum):
+        for property in this.properties:
+            if property.owner != this:
+                this.refreshrent(property)
+                this.properties.remove(property)
         this.rolleddoubles = 0
         this.timesmoved = 0
         cardon = Cards.board[this.position]
@@ -165,7 +171,8 @@ class Player:
                     if(len(this.sortedproperties[key]) > 0):
                         print (f" {key} Set:")
                         for property in this.sortedproperties[key]:
-                            print(f" {property.name}")
+                            if(property.owner == this):
+                                print(f" {property.name}")
                 print (f" Balance: {this.money} ")
                 if (this.turnssincecenterlink >= this.race.value and this.race != Race.WHITE):
                     print(" Centerlink Status: READY")
@@ -267,7 +274,10 @@ class Player:
                 this.playerturn(0)
             case 7:
                 print("Advance to the nearest utility")
-                this.position = min(abs(28 - this.position), abs(12 - this.position))
+                if (20 > this.position > 0):
+                    this.position = 12
+                else:
+                    this.position = 28
                 this.playerturn(0)
             case 8:
                 print("Bank pays you dividend of 50")
@@ -382,66 +392,65 @@ class Player:
             this.money = this.money + 1.2 * amount
             print(f"Modified balance of {this.name} by {amount}. Reason: {reason} \nAs you are Indian, the banker thought you were reckless with your spending and decided to teach you a lesson by charging 20% more for your transaction.")
     def refreshrent(this, property):
-            trainstations = []
-            utilities = []
             trainstationrents = [25, 50, 100, 200]
             utilitymultis = [4, 10]
-            if (property in this.properties):
-                match property.cardtype.value:
-                    case 1:
-                        match property.set:
-                            case Set.BROWN:
-                                this.sortedproperties["Brown"].remove(property)
-                            case Set.CYAN:
-                                this.sortedproperties["Cyan"].remove(property)
-                            case Set.PURPLE:
-                                this.sortedproperties["Purple"].remove(property)
-                            case Set.ORANGE:
-                                this.sortedproperties["Orange"].remove(property)
-                            case Set.RED:
-                                this.sortedproperties["Red"].remove(property)
-                            case Set.YELLOW:
-                                this.sortedproperties["Yellow"].remove(property)
-                            case Set.GREEN:
-                                this.sortedproperties["Green"].remove(property)
-                            case Set.BLUE:
-                                this.sortedproperties["Blue"].remove(property)
-                    case 2:
-                        trainstations.remove(property)
-                        this.sortedproperties["Railroads"].remove(property)
-                    case 3:
-                        utilities.remove(property)
-                        this.sortedproperties["Utilities"].remove(property)
-            else:
-                match property.cardtype.value:
-                    case 1:
-                        match property.set:
-                            case Set.BROWN:
-                                this.sortedproperties["Brown"].append(property)
-                            case Set.CYAN:
-                                this.sortedproperties["Cyan"].append(property)
-                            case Set.PURPLE:
-                                this.sortedproperties["Purple"].append(property)
-                            case Set.ORANGE:
-                                this.sortedproperties["Orange"].append(property)
-                            case Set.RED:
-                                this.sortedproperties["Red"].append(property)
-                            case Set.YELLOW:
-                                this.sortedproperties["Yellow"].append(property)
-                            case Set.GREEN:
-                                this.sortedproperties["Green"].append(property)
-                            case Set.BLUE:
-                                this.sortedproperties["Blue"].append(property)
-                    case 2:
-                        trainstations.append(property)
-                        this.sortedproperties["Railroads"].append(property)
-                    case 3:
-                        utilities.append(property)
-                        this.sortedproperties["Utilities"].append(property)
-            for trainstation in trainstations:
-                trainstation.rent == trainstationrents[len(trainstations)]
-            for utility in utilities:
-                utility.multi == utilitymultis[len(utilities)]
+            if (property.owner == this):
+                if (property in this.properties):
+                    match property.cardtype.value:
+                        case 1:
+                            match property.set:
+                                case Set.BROWN:
+                                    this.sortedproperties["Brown"].remove(property)
+                                case Set.CYAN:
+                                    this.sortedproperties["Cyan"].remove(property)
+                                case Set.PURPLE:
+                                    this.sortedproperties["Purple"].remove(property)
+                                case Set.ORANGE:
+                                    this.sortedproperties["Orange"].remove(property)
+                                case Set.RED:
+                                    this.sortedproperties["Red"].remove(property)
+                                case Set.YELLOW:
+                                    this.sortedproperties["Yellow"].remove(property)
+                                case Set.GREEN:
+                                    this.sortedproperties["Green"].remove(property)
+                                case Set.BLUE:
+                                    this.sortedproperties["Blue"].remove(property)
+                        case 2:
+                            this.trainstations.remove(property)
+                            this.sortedproperties["Railroads"].remove(property)
+                        case 3:
+                            this.utilities.remove(property)
+                            this.sortedproperties["Utilities"].remove(property)
+                else:
+                    match property.cardtype.value:
+                        case 1:
+                            match property.set:
+                                case Set.BROWN:
+                                    this.sortedproperties["Brown"].append(property)
+                                case Set.CYAN:
+                                    this.sortedproperties["Cyan"].append(property)
+                                case Set.PURPLE:
+                                    this.sortedproperties["Purple"].append(property)
+                                case Set.ORANGE:
+                                    this.sortedproperties["Orange"].append(property)
+                                case Set.RED:
+                                    this.sortedproperties["Red"].append(property)
+                                case Set.YELLOW:
+                                    this.sortedproperties["Yellow"].append(property)
+                                case Set.GREEN:
+                                    this.sortedproperties["Green"].append(property)
+                                case Set.BLUE:
+                                    this.sortedproperties["Blue"].append(property)
+                        case 2:
+                            this.trainstations.append(property)
+                            this.sortedproperties["Railroads"].append(property)
+                        case 3:
+                            this.utilities.append(property)
+                            this.sortedproperties["Utilities"].append(property)
+                for trainstation in this.trainstations:
+                    trainstation.rent == trainstationrents[len(this.trainstations)]
+                for utility in this.utilities:
+                    utility.multi == utilitymultis[len(this.utilities)]
     def bankruptcheck(this):
         if this.money >= 0:
             pass
@@ -647,19 +656,21 @@ class Card:
             if (player.race != Race.BLACK):
                 if (player.money > this.price):
                     player.modifybalance(this.price * -1, "bought property")
+                    this.owner = player
                     player.refreshrent(this)
                     player.properties.append(this)
                     player.builthousethisturn = True
-                    this.owner = player
+                    
                 else:
                     print("Not enough money!")
             else:
                 if (player.money > this.price * 2):
                     player.modifybalance(this.price * -2, "bought property at double the cost due to archaic racist laws")
+                    this.owner = player
                     player.refreshrent(this)
                     player.properties.append(this)
                     player.builthousethisturn = True
-                    this.owner = player
+                    
                 else:
                     print("Not enough money!")
         else:
@@ -731,6 +742,8 @@ def tokenselect(player_name_list):
 def preplayerturn(player):
     #ORDER OF TURN
     #preplayerturn -> rolldice -> move -> playerturn -> postplayerturn
+    time.sleep(3)
+    clearconsole()
     if (player.injail == False):
         if (len(player_list.traverse(1000)) != 1):
             print(f"\n{player}'s turn")
@@ -753,9 +766,9 @@ def gamestart():
 
 # mainline
 print("************************************************************")
-print("---------- [Redacted] present: ---------")
-print("------------------- Game of Inequality ---------------")
-print("-------- The prejudice of institutional racism -------")
+print("---------- Uno Wong and Abhijith Madhavan present: ---------")
+print("------------------- Game of Inequality ---------------------")
+print("------------ The prejudice of institutional racism ---------")
 print("************************************************************")
 
 while True:
