@@ -39,10 +39,10 @@ class Set(Enum):
     RED = 25
     YELLOW = 30
     GREEN = 35
-    BLUE = 40
+    BLUE = 400
 
 class Player:
-    money = 2000
+    money = 1500
     properties = []
     race = Race.PLACEHOLDER
     name = 'Placeholder'
@@ -270,7 +270,7 @@ class Player:
                 this.position = min(abs(28 - this.position), abs(12 - this.position))
                 this.playerturn(0)
             case 8:
-                print("Bank pays you dividend of $50")
+                print("Bank pays you dividend of 50")
                 this.modifybalance(50, "chance")
             case 9:
                 print("Get Out of Jail Free")
@@ -283,13 +283,13 @@ class Player:
                 print("Go to jail. Go directly to jail.")
                 this.gotojail()
             case 12:
-                print("General repairs on all property. Pay $30 for each house.")
+                print("General repairs on all property. Pay 30 for each house.")
                 i = 0
                 for property in this.properties:
                     i += property.housesbuilt * 30
                 this.modifybalance(i * -1, "chance")
             case 13:
-                print("Speeding fine, $15")
+                print("Speeding fine, 15")
                 this.modifybalance(-15, "chance")
                 this.bankruptcheck()
             case 14:
@@ -297,14 +297,14 @@ class Player:
                 this.position = 5
                 this.playerturn(0)
             case 15:
-                print("You have been elected Chairman of the Board. Pay each player $50")
+                print("You have been elected Chairman of the Board. Pay each player 50")
                 for player in player_list.traverse(1000):
                     if (player != this):
                         player.modifybalance(50, f"Dividends paid generously by {this.name}")
                 this.modifybalance((len(player_list.traverse(1000)) - 1) * -50, "chance")
                 this.bankruptcheck()
             case 16:
-                print("Your building loan matures. Gain $150")
+                print("Your building loan matures. Gain 150")
                 this.modifybalance(150, "chance")
     def chest(this):
         print("Drawing Community Chest card...")
@@ -316,14 +316,14 @@ class Player:
                 this.position = 0
                 this.playerturn(0)
             case 2:
-                print("Bank error in your favor. Collect $200")
+                print("Bank error in your favor. Collect 200")
                 this.modifybalance(200, "community chest")
             case 3:
-                print("Doctor's fee. Pay $50")
+                print("Doctor's fee. Pay 50")
                 this.modifybalance(-50, "community chest")
                 this.bankruptcheck()
             case 4:
-                print("From sale of stock you get $50")
+                print("From sale of stock you get 50")
                 this.modifybalance(50, "community chest")
             case 5:
                 print("Get Out of Jail Free")
@@ -332,42 +332,42 @@ class Player:
                 print("Go to jail. Go directly to jail.")
                 this.gotojail()
             case 7:
-                print("Holiday fund matures. Collect $100")
+                print("Holiday fund matures. Collect 100")
                 this.modifybalance(100, "community chest")
             case 8:
-                print("Income tax refund, collect $20")
+                print("Income tax refund, collect 20")
                 this.modifybalance(20, "community chest")
             case 9:
-                print("It's your birthday. Collect $10 from every player")
+                print("It's your birthday. Collect 10 from every player")
                 for player in player_list.traverse(1000):
                     if (player != this):
                         player.modifybalance(-10, f"Birthday gift for {this.name}")
                 this.modifybalance((len(player_list.traverse(1000)) - 1) * 10, "community chest")
             case 10:
-                print("Life insurance matures. Collect $100")
+                print("Life insurance matures. Collect 100")
                 this.modifybalance(100, "community chest")
             case 11:
-                print("Pay hospital fees of $100")
+                print("Pay hospital fees of 100")
                 this.modifybalance(-100, "community chest")
                 this.bankruptcheck()
             case 12:
-                print("Pay school fees of $50")
+                print("Pay school fees of 50")
                 this.modifybalance(-50, "community chest")
                 this.bankruptcheck()
             case 13:
-                print("Recieve $25 consultancy fee")
+                print("Recieve 25 consultancy fee")
                 this.modifybalance(25, "community chest")
             case 14:
-                print("Assessed for street repairs. Pay $60 for each house.")
+                print("Assessed for street repairs. Pay 60 for each house.")
                 i = 0
                 for property in this.properties:
                     i += property.housesbuilt * 60
                 this.modifybalance(i * -1, "chance")
             case 15:
-                print("You have won second prize in a beauty contest. Collect $10")
+                print("You have won second prize in a beauty contest. Collect 10")
                 this.modifybalance(10, "community chest")
             case 16:
-                print("Inherit $100")
+                print("Inherit 100")
                 this.modifybalance(100, "community chest")
 
     def modifybalance(this, amount, reason):
@@ -489,7 +489,7 @@ class Player:
             this.position = 10
             this.rolldice()
     def injailseq(this):
-            a = input(f"{this.name}, YOU ARE IN JAIL. You have served {this.turnsinjail} turns of your sentence so far. \n1 to roll doubles to try to escape (if applicable) \n2 to bribe your way out ($50) \n3 to use your Get Out of Jail Free card (if applicable) \n9 to end turn\n")
+            a = input(f"{this.name}, YOU ARE IN JAIL. You have served {this.turnsinjail} turns of your sentence so far. \n1 to roll doubles to try to escape (if applicable) \n2 to bribe your way out (50) \n3 to use your Get Out of Jail Free card (if applicable) \n9 to end turn\n")
             match(a):
                 case '1':
                         if (this.race != Race.BLACK):
